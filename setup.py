@@ -16,7 +16,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='beeradvocatereviews',
-    version='1.0.2',
+    version='1.0.3',
 
     description='Module to export user reviews',
     long_description=long_description,
