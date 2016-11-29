@@ -14,6 +14,7 @@ BASE_URL = 'https://www.beeradvocate.com'
 class Beer(object):
     """
     Object to store beer reviews.
+    name - name of the beer
     """
     def __init__(self, name, brewery, style, abv, date, url):
         self.name = name
@@ -34,11 +35,13 @@ class Beer(object):
         Given a tr HTMLElement, parse the table contents.
         """
         date = Beer.clean_xml(xml[0].text_content())
-        a = [x for x in xml[1].getchildren() if x.tag == 'a']
-        name = Beer.clean_xml(a[0].text_content())
-        brewery = Beer.clean_xml(a[1].text_content())
-        style = Beer.clean_xml(a[2].text_content())
-        url = Beer.clean_xml(a[0].get('href'))
+        # Second td contains multiple fields
+        beer_info = [x for x in xml[1].getchildren() if x.tag == 'a']
+        name = Beer.clean_xml(beer_info[0].text_content())
+        brewery = Beer.clean_xml(beer_info[1].text_content())
+        style = Beer.clean_xml(beer_info[2].text_content())
+        url = Beer.clean_xml(beer_info[0].get('href'))
+
         abv = Beer.clean_xml(xml[2].text_content())
         return Beer(name, brewery, style, abv, date, url)
 
@@ -48,8 +51,12 @@ class Beer(object):
         """
         r = requests.get(BASE_URL + url)
         pq = PyQuery(r.text)
-        pq = pq('#rating_fullview_content_2:first')
+        pq = pq('#rating_fullview_content_2:first')  # user ratings section
         self.rating = self.clean_xml(pq('.BAscore_norm:first').text())
+
+        # comment is the look/smell/taste/feel/overall appended to any
+        # other comments. we remove the other sections so text()
+        # return only the comments
         self.comment = pq('.muted:first').text()
         pq.remove('br')
         pq.remove('.muted')
@@ -73,26 +80,28 @@ def get(username, start):
     pq = pq('table')
     pq = pq('tr')
 
-    for p in pq[3:]:
-        d = p.getchildren()[1:]
-        beers.append(Beer.build_from_xml(d))
+    for tr in pq[3:]:  # first 3 rows are table headers
+        td = tr.getchildren()[1:]  # first column is review star icon
+        beers.append(Beer.build_from_xml(td))
     return beers
 
 
 def serialize(beers):
     """
     Serialize and print out the result.
+    beers - list of Beer objects
     """
     print(json.dumps([b.__dict__ for b in beers]))
 
 
 def run(username, num):
     """
-    Top level function to call get() until all reviews are obtained, then print
+    Top level function to call get() until all reviews are obtained,
+    then print.
     """
     result = []
-    for a in range(0, int(num), 50):
-        result += get(username, a)
+    for start_index in range(0, int(num), 50):  # each call pulls 50 reviews
+        result += get(username, start_index)
     serialize(result)
 
 
