@@ -16,7 +16,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='beeradvocatereviews',
-    version='1.0.3',
+    version='1.0.4',
 
     description='Module to export user reviews',
     long_description=long_description,
@@ -27,9 +27,7 @@ setup(
         'License :: OSI Approved :: MIT License',
     ],
     keywords='beeradvocate beer api',
-    extras_require={
-        'dev': ['pyquery', 'requests'],
-    },
+    install_requires=['pyquery', 'requests'],
     packages=['beeradvocatereviews'],
     entry_points={
         'console_scripts': [
